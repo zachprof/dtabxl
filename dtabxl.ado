@@ -1,5 +1,5 @@
 *! Title:       dtabxl.ado   
-*! Version:     1.0 published August 2, 2023
+*! Version:     1.1 published August 2, 2023
 *! Author:      Zachary King 
 *! Email:       zacharyjking90@gmail.com
 *! Description: Tabulate univariate descriptive statistics in Excel
@@ -16,17 +16,13 @@ program def dtabxl
 	sheetname(string) tablename(string)                        ///
 	extrarows(numlist integer max=1 >0 <11)                   ///
 	extracols(numlist integer max=1 >0 <11)                     ///
-	roundto(numlist integer max=1 >0 <27)                      ///
+	roundto(numlist integer max=1 >=0 <=26)                    ///
 	bifurcate(varlist numeric min=1 max=1)                    ///
 	extrabicols(numlist integer max=1 >0 <11)                   ///
 	sig(numlist max=1 >0 <1)                                   ///
-	sigright(numlist max=1 >0 <1)                             ///
-	sigboth(numlist max=1 >0 <1)                                ///
-	3stars(numlist sort min=3 max=3 >0 <1)                     ///
-	3starsright(numlist sort min=3 max=3 >0 <1)               ///
-	3starsboth(numlist sort min=3 max=3 >0 <1)                  ///
-	TESTMEAN TESTMEDIAN NOSTARS BOLD ITALIC NOZEROS            ///
-	SWITCH REPLACE]
+	3stars(numlist sort min=3 max=3 >0 <1)                    ///
+	TESTMEAN TESTMEDIAN NOSTARS BOLD ITALIC NOZEROS             ///
+	SWITCH REPLACE SLEFT SRIGHT]
 	
 	* Set default statistics if not specified
 	
@@ -217,33 +213,23 @@ program def dtabxl
 			local `sigoption_check' = ``sigoption_check'' + 1
 		}
 		
+		if "`sleft'" != "" {
+			di as error "{bf:sleft} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
+			local `sigoption_check' = ``sigoption_check'' + 1
+		}
+		
+		if "`sright'" != "" {
+			di as error "{bf:sright} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
+			local `sigoption_check' = ``sigoption_check'' + 1
+		}
+		
 		if "`sig'" != "" {
 			di as error "{bf:sig} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
 			local `sigoption_check' = ``sigoption_check'' + 1
 		}
 		
-		if "`sigright'" != "" {
-			di as error "{bf:sigright} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
-			local `sigoption_check' = ``sigoption_check'' + 1
-		}
-		
-		if "`sigboth'" != "" {
-			di as error "{bf:sigboth} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
-			local `sigoption_check' = ``sigoption_check'' + 1
-		}
-		
 		if "`3stars'" != "" {
 			di as error "{bf:3stars} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
-			local `sigoption_check' = ``sigoption_check'' + 1
-		}
-		
-		if "`3starsright'" != "" {
-			di as error "{bf:3starsright} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
-			local `sigoption_check' = ``sigoption_check'' + 1
-		}
-		
-		if "`3starsboth'" != "" {
-			di as error "{bf:3starsboth} option only allowed if {bf:testmean} and/or {bf:testmedian} option specified"
 			local `sigoption_check' = ``sigoption_check'' + 1
 		}
 		
@@ -253,72 +239,47 @@ program def dtabxl
 		
 	}
 	
-	* Ensure sig, sigright, sigboth, 3stars, 3starsright, and 3starsboth options not used in combination
+	* Ensure sig and 3stars options not used in combination
 	
-	tempname option_check
-	
-	local `option_check' = 0
-	
-	if "`sig'" != "" local `option_check' = ``option_check'' + 1
-	if "`sigright'" != "" local `option_check' = ``option_check'' + 1
-	if "`sigboth'" != "" local `option_check' = ``option_check'' + 1
-	if "`3stars'" != "" local `option_check' = ``option_check'' + 1
-	if "`3starsright'" != "" local `option_check' = ``option_check'' + 1
-	if "`3starsboth'" != "" local `option_check' = ``option_check'' + 1
-	
-	if ``option_check'' > 1 {
-		di as error "only one of {bf:sig}, {bf:sigright}, {bf:sigboth}, {bf:3stars}, {bf:3starsright}, and {bf:3starsboth} options allowed"
+	if "`sig'" != "" & "`3stars'" != "" {
+		di as error "only one of {bf:sig} and {bf:3stars} options is allowed"
 		exit 198
 	}
 	
-	* Ensure bold, italic, and nostars options not used with 3stars, 3starsright, or 3starsboth options
+	* Ensure bold, italic, and nostars options not used with 3stars option
 	
-	if ("`3stars'" != "" | "`3starsright'" != "" | "`3starsboth'" != "") & ("`bold'" != "" | "`italic'" != "" | "`nostars'" != "") {
-		di as error "{bf:bold}, {bf:italic}, and {bf:nostars} options not allowed with {bf:3stars}, {bf:3starsright}, or {bf:3starsboth} options"
+	if "`3stars'" != "" & ("`bold'" != "" | "`italic'" != "" | "`nostars'" != "") {
+		di as error "{bf:bold}, {bf:italic}, and {bf:nostars} options not allowed with {bf:3stars} option"
 		exit 198
 	}
-	
-	* Set significance level if sigright or sigboth specified
-	
-	if "`sigright'" != "" local sig = `sigright'
-	if "`sigboth'" != "" local sig = `sigboth'
 	
 	* Set default significance level if not specified
 	
 	if "`sig'" == "" local sig = 0.05
 
-	* Save significance levels if 3stars, 3starsright, or 3starsboth specified
+	* Save significance levels if 3stars specified
 	
-	if "`3stars'" != "" | "`3starsright'" != "" | "`3starsboth'" != "" {
+	if "`3stars'" != "" {
 		
 		tempname snum s1 s2 s3
 		local `snum' = 3
 		
-		foreach level of numlist `3stars' `3starsright' `3starsboth' {
+		foreach level of numlist `3stars' {
 			local `s``snum''' = `level'
 			local `snum' = ``snum'' - 1
 		}
 		
 	}
 	
-	* Set whether significance is indicated on left, right, or both
+	* Set whether significance is indicated on left and/or right
 	
 	tempname sig_on_left sig_on_right
 	
-	if "`sigboth'" != "" | "`3starsboth'" != "" {
-		local `sig_on_left' = 1
-		local `sig_on_right' = 1
-	}
+	if "`sleft'" != "" local `sig_on_left' = 1
+	else local `sig_on_left' = 0
 	
-	else if "`sigright'" != "" | "`3starsright'" != "" {
-		local `sig_on_left' = 0
-		local `sig_on_right' = 1
-	}
-	
-	else {
-		local `sig_on_left' = 1
-		local `sig_on_right' = 0
-	}
+	if "`sright'" != "" local `sig_on_right' = 1
+	else local `sig_on_right' = 0
 	
 	* Set zeros to missing if nozeros is specified, and calculate and save descriptive statistics
 	
@@ -443,7 +404,7 @@ program def dtabxl
 		else local `signote' = "Italics with * indicates significant at p-value < 0`sig' level (two-tailed)"
 	}
 	
-	if "`3stars'" != "" | "`3starsright'" != "" | "`3starsboth'" != "" local `signote' = "*** (**, *) indicates significant at p-value < 0``s3'' (0``s2'', 0``s1'') level (two-tailed)"   
+	if "`3stars'" != "" local `signote' = "*** (**, *) indicates significant at p-value < 0``s3'' (0``s2'', 0``s1'') level (two-tailed)"   
 	
 	qui: putexcel A``r'' = "``signote''"
 	
@@ -469,6 +430,17 @@ program def dtabxl
 			local `c' = ``c'' + 1 + `extracols'
 		}
 		
+	}
+	
+	if "`testmean'" != "" & ``sig_on_left'' == 0 & ``sig_on_right'' == 0 {
+		local `c' = ``c'' + `extrabicols'
+		qui: putexcel ```c'''``r'' = "mean diff"
+		local `c' = ``c'' + 1 + `extracols'
+	}
+	
+	if "`testmedian'" != "" & ``sig_on_left'' == 0 & ``sig_on_right'' == 0 {
+		local `c' = ``c'' + `extrabicols'
+		qui: putexcel ```c'''``r'' = "median diff"
 	}
 	
 	* Write subsample labels to Excel if bifurcate
@@ -547,27 +519,23 @@ program def dtabxl
 				
 				qui: ttest ```varindex''' `if' `in' , by(`bifurcate')
 				
-				if r(p) < `sig' & "`3stars'" == "" & "`3starsright'" == "" & "`3starsboth'" == "" {
+				if "`3stars'" == "" {
 					
 					if "`nostars'" != "" qui: putexcel ```c'''``r'' = "``dval''"
-					else qui: putexcel ```c'''``r'' = "``dval''*"
 					
-					if "`bold'" != "" | "`italic'" != "" qui: putexcel ```c'''``r'', overwritefmt `bold' `italic'
+					else {
+						add_stars, value("``dval''") p(`r(p)') levelone(`sig')
+						qui: putexcel ```c'''``r'' = "`s(dval)'"
+					} 
+					
+					if r(p) < `sig' & ("`bold'" != "" | "`italic'" != "") qui: putexcel ```c'''``r'', overwritefmt `bold' `italic'
 					
 				}
 				
-				else if "`3stars'" != "" | "`3starsright'" != "" | "`3starsboth'" != "" {
+				else if "`3stars'" != "" {
 					
-					if r(p) < ``s3'' qui: putexcel ```c'''``r'' = "``dval''***"
-					else if r(p) < ``s2'' qui: putexcel ```c'''``r'' = "``dval''**"
-					else if r(p) < ``s1'' qui: putexcel ```c'''``r'' = "``dval''*"
-					
-					else qui: putexcel ```c'''``r'' = "``dval''"
-					
-				}
-				else {
-					
-					qui: putexcel ```c'''``r'' = "``dval''"
+					add_stars, value("``dval''") p(`r(p)') levelone(``s1'') leveltwo(``s2'') levelthree(``s3'')
+					qui: putexcel ```c'''``r'' = "`s(dval)'"
 					
 				}
 				
@@ -577,28 +545,23 @@ program def dtabxl
 				
 				qui: median ```varindex''' `if' `in' , by(`bifurcate') exact
 				
-				if r(p_exact) < `sig' & "`3stars'" == "" & "`3starsright'" == "" & "`3starsboth'" == "" {
+				if "`3stars'" == "" {
 					
 					if "`nostars'" != "" qui: putexcel ```c'''``r'' = "``dval''"
-					else qui: putexcel ```c'''``r'' = "``dval''*"
 					
-					if "`bold'" != "" | "`italic'" != "" qui: putexcel ```c'''``r'', overwritefmt `bold' `italic'
+					else {
+						add_stars, value("``dval''") p(`r(p_exact)') levelone(`sig')
+						qui: putexcel ```c'''``r'' = "`s(dval)'"
+					} 
 					
-				}
-				
-				else if "`3stars'" != "" | "`3starsright'" != "" | "`3starsboth'" != "" {
-					
-					if r(p_exact) < ``s3'' qui: putexcel ```c'''``r'' = "``dval''***"
-					else if r(p_exact) < ``s2'' qui: putexcel ```c'''``r'' = "``dval''**"
-					else if r(p_exact) < ``s1'' qui: putexcel ```c'''``r'' = "``dval''*"
-					
-					else qui: putexcel ```c'''``r'' = "``dval''"
+					if r(p_exact) < `sig' & ("`bold'" != "" | "`italic'" != "") qui: putexcel ```c'''``r'', overwritefmt `bold' `italic'
 					
 				}
 				
-				else {
+				else if "`3stars'" != "" {
 					
-					qui: putexcel ```c'''``r'' = "``dval''"
+					add_stars, value("``dval''") p(`r(p_exact)') levelone(``s1'') leveltwo(``s2'') levelthree(``s3'')
+					qui: putexcel ```c'''``r'' = "`s(dval)'"
 					
 				}
 				
@@ -617,10 +580,114 @@ program def dtabxl
 		local `r' = ``r'' + 1 + `extrarows'
 	}
 	
+	* Write mean differences to Excel
+	
+	if "`testmean'" != "" & ``sig_on_left'' == 0 & ``sig_on_right'' == 0 {
+		
+		local `c' = ``c'' + `extrabicols'
+		local `r' = 4
+		
+		foreach v of varlist `varlist' {
+			
+			qui: ttest `v' `if' `in' , by(`bifurcate')
+			
+			tempname diff
+			
+			if "`switch'" == "" local `diff' = r(mu_1) - r(mu_2)
+			else local `diff' = r(mu_2) - r(mu_1)
+			
+			local `int_length' = length(strofreal(int(``diff'')))
+			
+			local `digits' = `roundto' + ``int_length'' + ceil(``int_length''/3)
+			local `dval' : di %-``digits''.`roundto'fc ``diff''
+			
+			if "`3stars'" == "" {
+					
+				if "`nostars'" != "" qui: putexcel ```c'''``r'' = "``dval''"
+					
+				else {
+					add_stars, value("``dval''") p(`r(p)') levelone(`sig')
+					qui: putexcel ```c'''``r'' = "`s(dval)'"
+				} 
+					
+				if r(p) < `sig' & ("`bold'" != "" | "`italic'" != "") qui: putexcel ```c'''``r'', overwritefmt `bold' `italic'
+					
+			}
+				
+			else if "`3stars'" != "" {
+					
+				add_stars, value("``dval''") p(`r(p)') levelone(``s1'') leveltwo(``s2'') levelthree(``s3'')
+				qui: putexcel ```c'''``r'' = "`s(dval)'"
+					
+			}
+			
+			local `r' = ``r'' + 1 + `extrarows'
+			
+		}
+		
+		local `c' = ``c'' + 1 + `extracols'
+		
+	}
+	
+	* Write median differences to Excel
+	
+	if "`testmedian'" != "" & ``sig_on_left'' == 0 & ``sig_on_right'' == 0 {
+		
+		local `c' = ``c'' + `extrabicols'
+		local `r' = 4
+		
+		tempname vind
+		local `vind' = 1
+		
+		foreach v of varlist `varlist' {
+			
+			qui: median `v' `if' `in' , by(`bifurcate') exact
+			
+			tempname diff
+			local `diff' = stats[e(median),``vind''+``nvars''] - stats[e(median),``vind'']
+			
+			local `int_length' = length(strofreal(int(``diff'')))
+			
+			local `digits' = `roundto' + ``int_length'' + ceil(``int_length''/3)
+			local `dval' : di %-``digits''.`roundto'fc ``diff''
+			
+			if "`3stars'" == "" {
+					
+				if "`nostars'" != "" qui: putexcel ```c'''``r'' = "``dval''"
+					
+				else {
+					add_stars, value("``dval''") p(`r(p_exact)') levelone(`sig')
+					qui: putexcel ```c'''``r'' = "`s(dval)'"
+				} 
+					
+				if r(p_exact) < `sig' & ("`bold'" != "" | "`italic'" != "") qui: putexcel ```c'''``r'', overwritefmt `bold' `italic'
+					
+			}
+				
+			else if "`3stars'" != "" {
+					
+				add_stars, value("``dval''") p(`r(p_exact)') levelone(``s1'') leveltwo(``s2'') levelthree(``s3'')
+				qui: putexcel ```c'''``r'' = "`s(dval)'"
+					
+			}
+			
+			local `r' = ``r'' + 1 + `extrarows'
+			local `vind' = ``vind'' + 1
+			
+		}
+		
+		local `c' = ``c'' + 1 + `extracols'
+		
+	}
+	
 	* Close Excel
 	
 	qui: putexcel close
-
+	
+	* Display link to open Excel file
+	
+	display_clickable using "`using'"
+	
 end
 
 program def valid_stat
@@ -656,4 +723,51 @@ program def index_matrix_rows, eclass
 	ereturn scalar iqr    = 19
 	ereturn scalar median = 21
 
+end
+
+program def add_stars, sclass 
+	
+	syntax , value(string) p(numlist max=1) levelone(numlist max=1) [leveltwo(numlist max=1) levelthree(numlist max=1)]
+	
+	if "`leveltwo'" == "" & "`levelthree'" == "" {
+		
+		if `p' < `levelone' sreturn local dval "`value'*"
+		else sreturn local dval "`value'"
+		
+	}
+	
+	else {
+		
+		if `p' < `levelthree' sreturn local dval "`value'***"
+		else if `p' < `leveltwo' sreturn local dval "`value'**"
+		else if `p' < `levelone' sreturn local dval "`value'*"
+		else sreturn local dval "`value'"
+		
+	}
+	
+end
+
+program def display_clickable
+
+	syntax using/
+	
+	mata {
+		path_and_file = st_local("using")
+		path = ""
+		file = ""
+		pathsplit(path_and_file, path, file)
+		st_local("path", path) 
+		st_local("file", file) 
+	}
+	
+	if "`path'" == "" local path = "`c(pwd)'"
+	if strrpos("`file'", ".xlsx") == 0 & strrpos("`file'", ".xls") == 0 local file = "`file'.xlsx"
+	
+	mata {
+		file_w_ext_and_path = pathjoin(st_local("path"),st_local("file"))
+		st_local("file_w_ext_and_path", file_w_ext_and_path) 
+	}
+	
+	di as text `"{browse "`file_w_ext_and_path'":click here to open Excel output}"'
+	
 end
