@@ -1,0 +1,21 @@
+v 3
+d {bf:dtabxl}: Tabulate univariate descriptive statistics in Excel
+d
+d {bf:dtabxl} provides a variety of options for tabulating univariate descriptive statistics in Excel.
+d These options are designed to:
+d
+d      (1) streamline the process of communicating results to coauthors, and
+d      (2) minimize time spent populating descriptive statistics tables in Word.
+d
+d After installation, type {bf:help dtabxl}
+d
+d Additional information and illustrative examples provided at {browse "www.zach.prof":zach.prof}
+d 
+d Author: Zachary King
+d
+d Version: 1.0
+d Distribution-Date: August 2, 2023
+d License: MIT
+d 
+F dtabxl.ado
+F dtabxl.sthlp
