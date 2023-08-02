@@ -1,7 +1,7 @@
 {smcl}
-{* *! version 1.0  Published August 2, 2023}{...}
+{* *! version 1.1  Published August 2, 2023}{...}
 {p2colset 2 12 14 28}{...}
-{right: Version 1.0 }
+{right: Version 1.1 }
 {p2col:{bf:dtabxl} {hline 2}}Tabulate univariate descriptive statistics in Excel{p_end}
 {p2colreset}{...}
 
@@ -25,7 +25,7 @@
 {synopt:{opt sheetname(text)}}specify custom sheet name; default sheet name is "Descriptives"{p_end}
 {synopt:{opt tablename(text)}}specify custom table name; default table name is "Descriptive statistics"{p_end}
 {synopt:{opt replace}}required to overwrite an existing sheet in an existing Excel file; not required to add new sheets to an existing Excel file{p_end}
-{synopt:{opt roundto(#)}}set number of decimal places to round to; # must be integer greater than zero and less than 27; default is # = 2{p_end}
+{synopt:{opt roundto(#)}}set number of decimal places to round to; # must be integer between zero and 26; default is # = 2{p_end}
 {synopt:{opt nozeros}}set zeros to missing to calculate descriptive statistics{p_end}
 {synopt:{opt bifurcate(bivar)}}Bifurcate sample based on {it:bivar}; {it:bivar} must be 1/0 indicator{p_end}
 {synopt:{opt extrarows(#)}}insert extra rows between statistics; # must be integer between one and 10{p_end}
@@ -42,9 +42,9 @@
 {synopt:{it:bioptions}}Description{p_end}
 {synoptline}
 {synopt:{opt switch}}tabulate statistics for {it:bivar} = 0 on left and {it:bivar} = 1 on right; default is {it:bivar} = 1 on left and {it:bivar} = 0 on right{p_end}
-{synopt:{opt extrabicols(#)}}insert extra columns between {it:bivar} = 1/0 sides; # must be integer between one and 10{p_end}
-{synopt:{opt testmean}}test means across subsamples for each {it:var} in {varlist} using the following Stata command: {help ttest} {it:var} {ifin}, {opt by(bivar)}{p_end}
-{synopt:{opt testmedian}}test medians across subsamples for each {it:var} in {varlist} using the following Stata command: {help median} {it:var} {ifin}, {opt by(bivar)} {opt exact}{p_end}
+{synopt:{opt extrabicols(#)}}insert extra columns between {it:bivar} = 1/0 sides, and between difference column(s) if {opt testmean}/{opt testmedian} specified; # must be integer between one and 10{p_end}
+{synopt:{opt testmean}}test means across subsamples using Stata's {help ttest} command; see {browse "www.zach.prof":zach.prof} for additional details{p_end}
+{synopt:{opt testmedian}}test medians across subsamples using Stata's {help median} command; see {browse "www.zach.prof":zach.prof} for additional details{p_end}
 {synoptline}
 {p2colreset}{...}
 {p 4 6 2}
@@ -59,12 +59,10 @@
 {synopt:{opt bold}}use boldfaced text to indicate statistical significance{p_end}
 {synopt:{opt italic}}use italicized text to indicate statistical significance{p_end}
 {synopt:{opt nostars}}do not use stars to indicate statistical significance{p_end}
-{synopt:{opt sig(#)}}set significance level and display significance on left side; # must be between zero and one; p < # receives star, boldface, and/or italic{p_end}
-{synopt:{opt sigright(#)}}same as {opt sig(#)} but display significance on right side{p_end}
-{synopt:{opt sigboth(#)}}same as {opt sig(#)} but display significance on both sides{p_end}
-{synopt:{opt 3stars(# # #)}}use three stars to indicate significance on left side; # # # must contain three numbers between zero and one; p < the largest (smallest, other) # receives one (three, two) star(s){p_end}
-{synopt:{opt 3starsright(# # #)}}same as {opt 3stars(# # #)} but display significance on right side{p_end}
-{synopt:{opt 3starsboth(# # #)}}same as {opt 3stars(# # #)} but display significance on both sides{p_end}
+{synopt:{opt sleft}}remove difference column(s) and display significance on left{p_end}
+{synopt:{opt sright}}remove difference column(s) and display significance on right; can be used with {opt sleft} to display significance on both sides{p_end}
+{synopt:{opt sig(#)}}set significance level; # must be between zero and one; p < # receives star, boldface, and/or italic{p_end}
+{synopt:{opt 3stars(# # #)}}use three stars to indicate significance; # # # must contain three numbers between zero and one; order does not matter; p < the largest (smallest, other) # receives one (three, two) star(s){p_end}
 {synoptline}
 {p2colreset}{...}
 {p 4 6 2}
@@ -128,4 +126,16 @@ Zachary King{break}
 Email: {browse "mailto:zacharyjking90@gmail.com":zacharyjking90@gmail.com}{break}
 Website: {browse "www.zach.prof":zach.prof}{break}
 SSRN: {browse "https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=2623799":https://papers.ssrn.com}
+{p_end}
+
+
+{title:Acknowledgements}
+
+{pstd}
+I thank the following individuals for helpful feedback and suggestions on {opt dtabxl}, this help file, and the associated documentation on {browse "www.zach.prof":zach.prof}:{p_end}
+
+{pstd}
+Jesse Chan{break}
+Rachel Flam{break}
+Ben Osswald
 {p_end}
