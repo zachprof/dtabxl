@@ -1,0 +1,4 @@
+v 3
+d Stata code by Zachary King
+
+p dtabxl Tabulate univariate descriptive statistics in Excel
