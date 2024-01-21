@@ -1,7 +1,7 @@
 *! Title:       dtabxl.ado   
 *! Version:     1.1 published August 2, 2023
 *! Author:      Zachary King 
-*! Email:       zacharyjking90@gmail.com
+*! Email:       me@zach.prof
 *! Description: Tabulate univariate descriptive statistics in Excel
 
 program def dtabxl
